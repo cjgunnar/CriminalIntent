@@ -10,6 +10,13 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+import java.util.*
+
+private const val TAG = "CrimeFragment"
+
+private const val ARG_CRIME_ID = "crime_id"
 
 class CrimeFragment : Fragment() {
     private lateinit var crime : Crime
@@ -18,9 +25,15 @@ class CrimeFragment : Fragment() {
     private lateinit var dateButton : Button
     private lateinit var solvedCheckBox: CheckBox
 
+    private val crimeFragmentViewModel: CrimeFragmentViewModel by lazy {
+        ViewModelProviders.of(this).get(CrimeFragmentViewModel::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         crime = Crime()
+        val id = arguments?.getSerializable(ARG_CRIME_ID) as UUID
+        crimeFragmentViewModel.loadCrime(id)
     }
 
     override fun onCreateView(
@@ -41,8 +54,34 @@ class CrimeFragment : Fragment() {
         return view
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        crimeFragmentViewModel.crimeLiveData.observe(
+            viewLifecycleOwner,
+            Observer { crime ->
+                crime?.let {
+                    this.crime = crime
+                    updateUI()
+                }
+            })
+    }
+
+    private fun updateUI() {
+        titleEditText.setText(crime.title)
+        dateButton.text = crime.date.toString()
+
+        //skip checkbox animation
+        solvedCheckBox.apply {
+            isChecked = crime.isSolved
+            jumpDrawablesToCurrentState()
+        }
+
+    }
+
     override fun onStart() {
         super.onStart()
+
+        //update internal crime as data is entered
         val titleWatcher = object : TextWatcher {
             override fun beforeTextChanged(
                 sequence: CharSequence?,
@@ -66,6 +105,24 @@ class CrimeFragment : Fragment() {
 
         solvedCheckBox.apply {
             setOnCheckedChangeListener { _, isChecked -> crime.isSolved = isChecked }
+        }
+    }
+
+    //save the crime when leaving focus
+    override fun onStop() {
+        super.onStop()
+        crimeFragmentViewModel.saveCrime(crime)
+    }
+
+    companion object {
+        fun newInstance(uuid: UUID) : CrimeFragment {
+            val args = Bundle().apply {
+                putSerializable(ARG_CRIME_ID, uuid)
+            }
+
+            return CrimeFragment().apply {
+                arguments = args
+            }
         }
     }
 }

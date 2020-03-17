@@ -5,10 +5,13 @@ import androidx.lifecycle.LiveData
 import androidx.room.Room
 import com.bignerdranch.android.criminalintent.database.CrimeDatabase
 import java.util.*
+import java.util.concurrent.Executors
 
 private const val DATABASE_NAME = "crime-database"
 
 class CrimeRepository private constructor(context: Context) {
+
+    private val executor = Executors.newSingleThreadExecutor()
 
     private val database : CrimeDatabase = Room.databaseBuilder(
         context.applicationContext,
@@ -20,6 +23,18 @@ class CrimeRepository private constructor(context: Context) {
 
     fun getCrimes(): LiveData<List<Crime>> = crimeDao.getCrimes()
     fun getCrime(id: UUID): LiveData<Crime?> = crimeDao.getCrime(id)
+
+    fun updateCrime(crime : Crime) {
+        executor.execute {
+            crimeDao.updateCrime(crime)
+        }
+    }
+
+    fun insertCrime(crime : Crime) {
+        executor.execute {
+            crimeDao.addCrime(crime)
+        }
+    }
 
     companion object {
         private var INSTANCE: CrimeRepository? = null
