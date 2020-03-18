@@ -11,7 +11,9 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import java.text.DateFormat
 import java.util.*
@@ -22,7 +24,7 @@ class CrimeListFragment : Fragment() {
 
     private lateinit var crimeRecyclerView: RecyclerView
 
-    private var adapter: CrimeAdapter? = CrimeAdapter(emptyList())
+    private var adapter: CrimeAdapter = CrimeAdapter(emptyList())
 
     private val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeListViewModel::class.java)
@@ -95,8 +97,22 @@ class CrimeListFragment : Fragment() {
         }
     }
 
+    private class CrimeDiffCallback : DiffUtil.ItemCallback<Crime>() {
+        override fun areItemsTheSame(oldItem: Crime, newItem: Crime): Boolean {
+            //simply check if IDs are the same
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: Crime, newItem: Crime): Boolean {
+            //calls .equals on each item so make sure that .equals() is implemented
+            //crime is a data class so the system should have that taken care of
+            return oldItem == newItem
+        }
+
+    }
+
     private inner class CrimeAdapter(var crimes: List<Crime>) :
-        RecyclerView.Adapter<CrimeHolder>() {
+        ListAdapter<Crime, CrimeHolder>(CrimeDiffCallback()) {
 
         val minorCrime = 0
         val seriousCrime = 1
@@ -129,7 +145,10 @@ class CrimeListFragment : Fragment() {
     }
 
     private fun updateUI(crimes : List<Crime>) {
+        //I'm not sure if this code actually does the optimization
+        //TODO fix that
         adapter = CrimeAdapter(crimes)
+        adapter.submitList(crimes)
         crimeRecyclerView.adapter = adapter
     }
 
