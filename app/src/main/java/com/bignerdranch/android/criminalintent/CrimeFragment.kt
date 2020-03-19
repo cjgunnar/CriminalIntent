@@ -18,7 +18,10 @@ private const val TAG = "CrimeFragment"
 
 private const val ARG_CRIME_ID = "crime_id"
 
-class CrimeFragment : Fragment() {
+private const val DIALOG_DATE = "DialogDate"
+private const val REQUEST_DATE = 0
+
+class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
     private lateinit var crime : Crime
 
     private lateinit var titleEditText: EditText
@@ -45,10 +48,6 @@ class CrimeFragment : Fragment() {
 
         titleEditText = view.findViewById(R.id.crime_title)
         dateButton = view.findViewById(R.id.crime_date)
-        dateButton.apply {
-            text = crime.date.toString()
-            isEnabled = false
-        }
         solvedCheckBox = view.findViewById(R.id.crime_solved)
 
         return view
@@ -106,6 +105,13 @@ class CrimeFragment : Fragment() {
         solvedCheckBox.apply {
             setOnCheckedChangeListener { _, isChecked -> crime.isSolved = isChecked }
         }
+
+        dateButton.setOnClickListener {
+            DatePickerFragment.newInstance(crime.date).apply {
+                setTargetFragment(this@CrimeFragment, REQUEST_DATE)
+                show(this@CrimeFragment.requireFragmentManager(), DIALOG_DATE)
+            }
+        }
     }
 
     //save the crime when leaving focus
@@ -124,5 +130,10 @@ class CrimeFragment : Fragment() {
                 arguments = args
             }
         }
+    }
+
+    override fun onDateSelected(date: Date) {
+        crime.date = date
+        updateUI()
     }
 }
