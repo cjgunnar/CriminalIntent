@@ -143,13 +143,12 @@ class CrimeListFragment : Fragment() {
         }
 
         override fun getItemViewType(position: Int): Int {
-            return minorCrime //TODO FIX AND REIMPLEMENT if (crimes[position].requiresPolice) seriousCrime else minorCrime
+            return if (crimes[position].requiresPolice) seriousCrime else minorCrime
         }
     }
 
     private fun updateUI(crimes : List<Crime>) {
         //I'm not sure if this code actually does the optimization
-        //TODO fix that
         adapter = CrimeAdapter(crimes)
         adapter.submitList(crimes)
         crimeRecyclerView.adapter = adapter

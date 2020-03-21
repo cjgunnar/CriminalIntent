@@ -33,6 +33,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
     private lateinit var dateButton : Button
     private lateinit var timeButton : Button
     private lateinit var solvedCheckBox: CheckBox
+    private lateinit var requiresPoliceCheckBox: CheckBox
 
     private val crimeFragmentViewModel: CrimeFragmentViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeFragmentViewModel::class.java)
@@ -56,6 +57,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         dateButton = view.findViewById(R.id.crime_date)
         timeButton = view.findViewById(R.id.crime_time)
         solvedCheckBox = view.findViewById(R.id.crime_solved)
+        requiresPoliceCheckBox = view.findViewById(R.id.crime_requires_police_button)
 
         return view
     }
@@ -80,6 +82,10 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         //skip checkbox animation
         solvedCheckBox.apply {
             isChecked = crime.isSolved
+            jumpDrawablesToCurrentState()
+        }
+        requiresPoliceCheckBox.apply {
+            isChecked = crime.requiresPolice
             jumpDrawablesToCurrentState()
         }
 
@@ -112,6 +118,9 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
 
         solvedCheckBox.apply {
             setOnCheckedChangeListener { _, isChecked -> crime.isSolved = isChecked }
+        }
+        requiresPoliceCheckBox.apply {
+            setOnCheckedChangeListener { _, isChecked -> crime.requiresPolice = isChecked }
         }
 
         dateButton.setOnClickListener {
