@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -20,6 +21,8 @@ private const val TAG = "CrimeListFragment"
 
 class CrimeListFragment : Fragment() {
 
+    private lateinit var crimeListLayout: LinearLayout
+    private lateinit var noCrimeTextView: TextView
     private lateinit var crimeRecyclerView: RecyclerView
 
     private var adapter: CrimeAdapter = CrimeAdapter(emptyList())
@@ -56,9 +59,13 @@ class CrimeListFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_crime_list, container, false)
 
+        crimeListLayout = view.findViewById(R.id.crime_list_ll)
+        noCrimeTextView = view.findViewById(R.id.no_items_tv)
+
         crimeRecyclerView = view.findViewById(R.id.crime_recycler_view)
         crimeRecyclerView.layoutManager = LinearLayoutManager(context)
         crimeRecyclerView.adapter = adapter
+
         return view
     }
 
@@ -148,10 +155,18 @@ class CrimeListFragment : Fragment() {
     }
 
     private fun updateUI(crimes : List<Crime>) {
-        //I'm not sure if this code actually does the optimization
-        adapter = CrimeAdapter(crimes)
-        adapter.submitList(crimes)
-        crimeRecyclerView.adapter = adapter
+        if(crimes.isNotEmpty()) {
+            crimeRecyclerView.visibility = View.VISIBLE
+            noCrimeTextView.visibility = View.GONE
+
+            adapter = CrimeAdapter(crimes)
+            adapter.submitList(crimes)
+            crimeRecyclerView.adapter = adapter
+        }
+        else {
+            crimeRecyclerView.visibility = View.GONE
+            noCrimeTextView.visibility = View.VISIBLE
+        }
     }
 
     //MENU
