@@ -6,4 +6,6 @@
     <string name="crime_solved_label">Solved</string>
     <string name="clicked_item_view_toast">Clicked on item %s</string>
     <string name="call_police_button">Call Police!</string>
+
+    <string name="new_crime">New Crime</string>
 </resources>
