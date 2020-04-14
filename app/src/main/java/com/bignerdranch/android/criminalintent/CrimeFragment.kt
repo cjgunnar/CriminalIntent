@@ -7,6 +7,7 @@ import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.telephony.PhoneNumberUtils
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -45,6 +46,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
     private lateinit var requiresPoliceCheckBox: CheckBox
     private lateinit var reportButton : Button
     private lateinit var suspectButton: Button
+    private lateinit var callSuspectButton : Button
 
     private val crimeFragmentViewModel: CrimeFragmentViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeFragmentViewModel::class.java)
@@ -71,6 +73,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         requiresPoliceCheckBox = view.findViewById(R.id.crime_requires_police_button)
         reportButton = view.findViewById(R.id.report_crime_button)
         suspectButton = view.findViewById(R.id.choose_suspect_button)
+        callSuspectButton = view.findViewById(R.id.call_suspect_button)
 
         return view
     }
@@ -104,6 +107,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
 
         if(crime.suspect.isNotEmpty()) {
             suspectButton.text = crime.suspect
+            callSuspectButton.isEnabled = true
         }
     }
 
@@ -164,7 +168,8 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         }
 
         suspectButton.apply {
-            val pickContactIntent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+            val pickContactIntent = Intent(Intent.ACTION_PICK)
+            pickContactIntent.type = ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE
 
             setOnClickListener {
                 startActivityForResult(pickContactIntent, REQUEST_CONTACT)
@@ -180,6 +185,16 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
             }
 
         }
+
+        callSuspectButton.apply {
+            setOnClickListener {
+                //format umber to URI
+                val phoneURI = "tel:${PhoneNumberUtils.normalizeNumber(crime.number)}"
+                startActivity(Intent(Intent.ACTION_DIAL, Uri.parse(phoneURI)))
+            }
+
+            isEnabled = crime.number.isNotBlank()
+        }
     }
 
     //save the crime when leaving focus
@@ -194,7 +209,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
 
             requestCode == REQUEST_CONTACT && data != null -> {
                 val contactUri: Uri? = data.data
-                val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+                val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER)
                 if(contactUri != null) {
                     val cursor = requireActivity().contentResolver
                         .query(contactUri, queryFields, null,null,null)
@@ -204,9 +219,17 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
 
                         it.moveToFirst()
                         val suspect = it.getString(0)
+                        val number = it.getString(1)
+
                         crime.suspect = suspect
+                        crime.number = number
+
                         crimeFragmentViewModel.saveCrime(crime)
+
                         suspectButton.text = suspect
+
+                        //enable call button if number is entered
+                        callSuspectButton.isEnabled = number.isNotBlank()
                     }
                 }
             }

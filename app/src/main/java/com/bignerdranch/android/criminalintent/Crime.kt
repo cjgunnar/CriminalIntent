@@ -10,4 +10,5 @@ data class Crime(@PrimaryKey val id : UUID = UUID.randomUUID(),
                  var date : Date = Date(),
                  var requiresPolice : Boolean = false,
                  var isSolved : Boolean = false,
-                 var suspect : String = "")
+                 var suspect : String = "",
+                 var number : String = "")
