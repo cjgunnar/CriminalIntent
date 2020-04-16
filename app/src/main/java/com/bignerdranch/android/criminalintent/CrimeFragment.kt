@@ -30,6 +30,7 @@ private const val ARG_CRIME_ID = "crime_id"
 
 private const val DIALOG_DATE = "DialogDate"
 private const val DIALOG_TIME = "DialogTime"
+private const val DIALOG_THUMBNAIL = "DialogThumbnail"
 
 private const val REQUEST_DATE = 0
 private const val REQUEST_TIME = 1
@@ -216,6 +217,14 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
             }
 
             isEnabled = crime.number.isNotBlank()
+        }
+
+        photoView.apply {
+            setOnClickListener {
+                ThumbnailFragment.newInstance(crimePhoto.path).apply {
+                    show(this@CrimeFragment.requireFragmentManager(), DIALOG_THUMBNAIL)
+                }
+            }
         }
 
         photoButton.apply {
