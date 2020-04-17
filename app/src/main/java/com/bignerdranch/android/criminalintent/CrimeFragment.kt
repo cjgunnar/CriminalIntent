@@ -47,6 +47,9 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
     private lateinit var titleEditText: EditText
     private lateinit var photoButton: ImageButton
     private lateinit var photoView: ImageView
+    private var photoWidth = 0
+    private var photoHeight = 0
+
     private lateinit var dateButton : Button
     private lateinit var timeButton : Button
     private lateinit var solvedCheckBox: CheckBox
@@ -84,6 +87,13 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
         suspectButton = view.findViewById(R.id.choose_suspect_button)
         callSuspectButton = view.findViewById(R.id.call_suspect_button)
 
+        //update photo view after layout done
+        photoView.viewTreeObserver.addOnGlobalLayoutListener {
+            activity?.let {
+                updatePhotoView()
+            }
+        }
+
         return view
     }
 
@@ -94,18 +104,19 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks, TimePickerFragme
             Observer { crime ->
                 crime?.let {
                     this.crime = crime
-                    crimePhoto = crimeFragmentViewModel.getPhotoFile(crime)
-                    photoUri = FileProvider.getUriForFile(requireActivity(),
-                        "com.bignerdranch.android.criminalintent.fileprovider",
-                        crimePhoto)
                     updateUI()
                 }
             })
     }
 
     private fun updatePhotoView() {
+        crimePhoto = crimeFragmentViewModel.getPhotoFile(crime)
+        photoUri = FileProvider.getUriForFile(requireActivity(),
+            "com.bignerdranch.android.criminalintent.fileprovider",
+            crimePhoto)
+
         if(crimePhoto.exists()) {
-            val bitmap = getScaledBitmap(crimePhoto.path, requireActivity())
+            val bitmap = getScaledBitmap(crimePhoto.path, photoView.width, photoView.height)
             photoView.setImageBitmap(bitmap)
         }
         else photoView.setImageDrawable(null)
